@@ -122,7 +122,10 @@ helpers.findNearestObjectDirectionAndDistance = function(board, fromTile, tileCa
           return {
             direction: correctDirection,
             distance: distance,
-            coords: finalCoords
+            coords: finalCoords,
+            tileHealth: nextTile.health,
+            tileDistanceFromTop: nextTile.distanceFromTop,
+            tileDistanceFromLeft: nextTile.distanceFromLeft
           };
 
           // If the tile is unoccupied, then we need to push it into our queue
@@ -244,6 +247,79 @@ helpers.findNearestTeamMember = function(gameData) {
 
   //Return the direction that needs to be taken to achieve the goal
   return pathInfoObject.direction;
+};
+
+
+
+// Tom's additions
+
+helpers.nearestTeamMember = function(gameData) {
+  var hero = gameData.activeHero;
+  var board = gameData.board;
+
+  //Get the path info object
+  var pathInfoObject = helpers.findNearestObjectDirectionAndDistance(board, hero, function(heroTile) {
+    return heroTile.type === 'Hero' && heroTile.team === hero.team;
+  });
+
+  //Return the distance that needs to be taken to achieve the goal
+  return pathInfoObject;
+};
+
+helpers.nearestTeamMemberWithLessThanSpecifiedHealth = function(gameData, healthThreshold) {
+  var hero = gameData.activeHero;
+  var board = gameData.board;
+
+  //Get the path info object
+  var pathInfoObject = helpers.findNearestObjectDirectionAndDistance(board, hero, function(heroTile) {
+    return heroTile.type === 'Hero' && heroTile.team === hero.team && heroTile.tileHealth < healthThreshold;
+  });
+
+  //Return the distance that needs to be taken to achieve the goal
+  return pathInfoObject;
+};
+
+
+helpers.nearestTeamMemberWhoIsNot = function(gameData, teamMate) {
+  var hero = gameData.activeHero;
+  var board = gameData.board;
+
+  //Get the path info object
+  var pathInfoObject = helpers.findNearestObjectDirectionAndDistance(board, hero, function(heroTile) {
+    return heroTile.type === 'Hero' && heroTile.team === hero.team && !((heroTile.tileDistanceFromTop == teamMate.distanceFromTop) && (heroTile.tileDistanceFromLeft == teamMate.tileDistanceFromLeft));
+  });
+
+  //Return the distance that needs to be taken to achieve the goal
+  return pathInfoObject;
+};
+
+
+// Returns the nearest health well or false, if there are no health wells
+helpers.nearestHealthWell = function(gameData) {
+  var hero = gameData.activeHero;
+  var board = gameData.board;
+
+  //Get the path info object
+  var pathInfoObject = helpers.findNearestObjectDirectionAndDistance(board, hero, function(healthWellTile) {
+    return healthWellTile.type === 'HealthWell';
+  });
+
+  //Return the distance that needs to be taken to achieve the goal
+  return pathInfoObject;
+};
+
+
+helpers.nearestEnemy = function(gameData) {
+  var hero = gameData.activeHero;
+  var board = gameData.board;
+
+  //Get the path info object
+  var pathInfoObject = helpers.findNearestObjectDirectionAndDistance(board, hero, function(enemyTile) {
+    return enemyTile.type === 'Hero' && enemyTile.team !== hero.team;
+  });
+
+  //Return the direction that needs to be taken to achieve the goal
+  return pathInfoObject;
 };
 
 module.exports = helpers;
